@@ -1,10 +1,10 @@
 <template>
-  <q-form class="q-gutter-md" @submit="onSubmit">
+  <q-form class="q-gutter-y-md" @submit="onSubmit">
     <q-input v-model="title" label="Title" outlined dense />
     <q-input v-model="description" label="Description" outlined dense />
     <q-select v-model="priority" :options="['low', 'medium', 'high']" label="Priority" outlined dense />
     <div>
-    <q-input filled v-model="deadline" mask="date" :rules="['date']">
+    <q-input v-model="deadline" label="deadline" mask="date" :rules="['date']" outlined dense>
         <template #append>
         <q-icon name="event" class="cursor-pointer">
             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -18,9 +18,7 @@
         </template>
     </q-input>
     </div>
-    <q-card-actions align="right">
-      <q-btn type="submit" color="primary" label="Add" :disable="!title" />
-    </q-card-actions>
+    <q-btn type="submit" color="primary" label="add" class="full-width" :disable="!title" />
   </q-form>
 </template>
 
