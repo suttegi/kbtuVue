@@ -2,7 +2,12 @@
   <q-page class="container page">
     <router-link to="/store" class="back">‹ store</router-link>
 
-    <div class="product">
+    <div v-if="!product" class="not-found">
+      <p class="subhead q-ma-none">this product doesn’t exist.</p>
+      <q-btn flat no-caps color="primary" label="back to store" class="q-mt-sm" to="/store" />
+    </div>
+
+    <div v-else class="product">
       <div class="product__image">
         <img :src="product.thumbnail" :alt="product.title" />
       </div>
@@ -24,32 +29,44 @@
           </div>
         </div>
 
-        <div class="row q-gutter-sm q-mt-xl">
-          <q-btn unelevated no-caps color="primary" label="add to bag" class="pill" />
+        <div class="row items-center q-gutter-md q-mt-xl">
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            label="add to bag"
+            class="pill"
+            @click="addToBag"
+          />
+          <router-link v-if="inBag" to="/cart" class="in-bag"
+            >{{ inBag }} in your bag ›</router-link
+          >
         </div>
       </div>
     </div>
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useQuasar } from 'quasar';
 import { products } from '@/data/products';
 import { categoryOf } from '@/data/categories';
+import { cart } from '@/services/cart';
 
-export default defineComponent({
-  name: 'ProductPage',
-  data() {
-    return {
-      product: products[0]!,
-    };
-  },
-  computed: {
-    category(): string {
-      return categoryOf(this.product.title);
-    },
-  },
-});
+const route = useRoute();
+const $q = useQuasar();
+
+const product = computed(() => products.find((p) => p.id === Number(route.params.id)));
+const category = computed(() => (product.value ? categoryOf(product.value.title) : ''));
+const inBag = computed(() => (product.value ? (cart.find(product.value.id)?.quantity ?? 0) : 0));
+
+function addToBag() {
+  if (!product.value) return;
+  cart.add(product.value);
+  $q.notify({ message: `${product.value.title} added to bag`, color: 'secondary' });
+}
 </script>
 
 <style scoped lang="scss">
@@ -59,6 +76,16 @@ export default defineComponent({
 }
 
 .back {
+  font-size: 15px;
+  color: #0071e3;
+}
+
+.not-found {
+  padding: 96px 0;
+  text-align: center;
+}
+
+.in-bag {
   font-size: 15px;
   color: #0071e3;
 }

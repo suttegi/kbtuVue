@@ -4,9 +4,23 @@
       <div class="login__logo">quan</div>
       <h1 class="login__title">sign in to quan.</h1>
 
-      <q-form class="column q-gutter-md q-mt-lg">
-        <q-input v-model="username" outlined label="username" />
-        <q-input v-model="password" outlined type="password" label="password" />
+      <q-form greedy class="column q-gutter-md q-mt-lg" @submit="submit">
+        <q-input
+          v-model="username"
+          outlined
+          label="username"
+          autocomplete="username"
+          :rules="[(v: string) => !!v || 'enter your username']"
+        />
+        <q-input
+          v-model="password"
+          outlined
+          type="password"
+          label="password"
+          autocomplete="current-password"
+          :rules="[(v: string) => v.length >= 4 || 'at least 4 characters']"
+        />
+        <div v-if="error" class="error">{{ error }}</div>
         <q-btn
           unelevated
           no-caps
@@ -22,18 +36,29 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { auth } from '@/services/auth';
 
-export default defineComponent({
-  name: 'LoginPage',
-  data() {
-    return {
-      username: '',
-      password: '',
-    };
-  },
-});
+const route = useRoute();
+const router = useRouter();
+
+const username = ref('');
+const password = ref('');
+const error = ref('');
+
+async function submit() {
+  error.value = '';
+  if (!auth.login(username.value.trim(), password.value)) {
+    error.value = 'wrong username or password.';
+    return;
+  }
+  const redirect = route.query.redirect;
+  const safe =
+    typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//');
+  await router.push(safe ? redirect : '/store');
+}
 </script>
 
 <style scoped lang="scss">
@@ -58,6 +83,11 @@ export default defineComponent({
   font-size: 32px;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+.error {
+  color: #ff3b30;
+  font-size: 14px;
 }
 
 .login__hint {

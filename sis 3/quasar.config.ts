@@ -34,7 +34,7 @@ export default defineConfig((/* ctx */) => {
         // browser: 'baseline-widely-available',
         // node: 'node22'
       },
-      vueOptionsAPI: true,
+      vueOptionsAPI: false,
 
       typescript: {
         strict: true,
@@ -99,7 +99,7 @@ export default defineConfig((/* ctx */) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify'],
     },
 
     // animations: 'all', // --- includes all animations

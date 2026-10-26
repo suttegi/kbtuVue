@@ -1,29 +1,32 @@
 <template>
-  <router-link :to="`/product/${product.id}`" class="card">
-    <div class="card__image">
-      <img :src="product.thumbnail" :alt="product.title" />
+  <div class="card">
+    <router-link :to="`/product/${product.id}`">
+      <div class="card__image">
+        <img :src="product.thumbnail" :alt="product.title" />
+      </div>
+      <div class="card__body">
+        <div class="card__title">{{ product.title }}</div>
+        <div class="card__price">${{ product.price }}</div>
+      </div>
+    </router-link>
+    <div class="card__actions">
+      <q-btn rounded no-caps color="primary" label="add to bag" @click="buy" />
     </div>
-    <div class="card__body">
-      <div class="card__title">{{ product.title }}</div>
-      <div class="card__price">${{ product.price }}</div>
-      <q-btn rounded no-caps color="primary" label="buy" to="/product/" />
-    </div>
-  </router-link>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue';
+<script setup lang="ts">
+import { useQuasar } from 'quasar';
 import type { Product } from '@/types/product';
+import { cart } from '@/services/cart';
 
-export default defineComponent({
-  name: 'ProductCard',
-  props: {
-    product: {
-      type: Object as PropType<Product>,
-      required: true,
-    },
-  },
-});
+const props = defineProps<{ product: Product }>();
+const $q = useQuasar();
+
+function buy() {
+  cart.add(props.product);
+  $q.notify({ message: `${props.product.title} added to bag`, color: 'secondary' });
+}
 </script>
 
 <style scoped lang="scss">
@@ -32,9 +35,7 @@ export default defineComponent({
   flex-direction: column;
   border-radius: 18px;
   overflow: hidden;
-  transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+  transition: transform 0.3s;
 
   &:hover {
     transform: scale(1.02);
@@ -56,7 +57,12 @@ export default defineComponent({
 }
 
 .card__body {
-  padding: 0 24px 28px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.card__actions {
+  padding: 12px 24px 28px;
   text-align: center;
 }
 
@@ -70,12 +76,5 @@ export default defineComponent({
   margin-top: 4px;
   font-size: 15px;
   color: #6e6e73;
-}
-
-.card__link {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 15px;
-  color: #0071e3;
 }
 </style>

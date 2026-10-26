@@ -6,10 +6,31 @@
 
         <nav class="nav__links">
           <router-link to="/store" class="nav__link">store</router-link>
-          <router-link to="/cart" class="nav__link">cart</router-link>
+          <router-link to="/cart" class="nav__link">
+            cart<span v-if="cart.count">&nbsp;({{ cart.count }})</span>
+          </router-link>
         </nav>
 
-        <q-btn flat round dense size="sm" icon="person_outline" to="/login" color="secondary" />
+        <q-btn v-if="auth.user" flat dense no-caps size="sm" color="secondary" class="nav__user">
+          hi, {{ auth.user.firstName }}
+          <q-menu anchor="bottom right" self="top right" :offset="[0, 8]">
+            <q-list dense style="min-width: 140px">
+              <q-item v-close-popup clickable @click="logout">
+                <q-item-section>sign out</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+        <q-btn
+          v-else
+          flat
+          round
+          dense
+          size="sm"
+          icon="person_outline"
+          to="/login"
+          color="secondary"
+        />
       </div>
     </q-header>
 
@@ -19,12 +40,21 @@
   </q-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router';
+import { auth } from '@/services/auth';
+import { cart } from '@/services/cart';
 
-export default defineComponent({
-  name: 'MainLayout',
-});
+const route = useRoute();
+const router = useRouter();
+
+async function logout() {
+  auth.logout();
+  cart.clear();
+  if (route.meta.requiresAuth) {
+    await router.push('/login');
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -63,6 +93,10 @@ export default defineComponent({
   &.router-link-exact-active {
     opacity: 1;
   }
+}
+
+.nav__user {
+  font-size: 12px;
 }
 
 @media (max-width: 600px) {

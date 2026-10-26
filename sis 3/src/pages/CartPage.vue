@@ -1,84 +1,117 @@
 <template>
   <q-page class="container page">
     <h1 class="headline q-mt-none q-mb-sm">your bag.</h1>
-    <p class="muted q-mb-xl">free delivery on all orders.</p>
 
-    <div class="items">
-      <div v-for="item in items" :key="item.product.id" class="item">
-        <router-link :to="`/product/${item.product.id}`" class="item__image soft-bg">
-          <img :src="item.product.thumbnail" :alt="item.product.title" />
-        </router-link>
+    <div v-if="!cart.items.length" class="empty">
+      <p class="subhead q-ma-none">your bag is empty.</p>
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        label="continue shopping"
+        class="pill q-mt-lg"
+        to="/store"
+      />
+    </div>
 
-        <div class="item__info">
-          <router-link :to="`/product/${item.product.id}`" class="item__title">
-            {{ item.product.title }}
+    <template v-else>
+      <p class="muted q-mb-xl">free delivery on all orders.</p>
+
+      <div class="items">
+        <div v-for="item in cart.items" :key="item.product.id" class="item">
+          <router-link :to="`/product/${item.product.id}`" class="item__image soft-bg">
+            <img :src="item.product.thumbnail" :alt="item.product.title" />
           </router-link>
-          <div class="muted">${{ item.product.price }} each</div>
+
+          <div class="item__info">
+            <router-link :to="`/product/${item.product.id}`" class="item__title">
+              {{ item.product.title }}
+            </router-link>
+            <div class="muted">${{ item.product.price }} each</div>
+          </div>
+
+          <div class="qty">
+            <q-btn
+              round
+              flat
+              dense
+              size="sm"
+              icon="remove"
+              @click="cart.decrement(item.product.id)"
+            />
+            <span class="qty__value">{{ item.quantity }}</span>
+            <q-btn round flat dense size="sm" icon="add" @click="cart.increment(item.product.id)" />
+          </div>
+
+          <div class="item__total">${{ (item.product.price * item.quantity).toFixed(2) }}</div>
+
+          <q-btn
+            flat
+            no-caps
+            dense
+            color="primary"
+            label="remove"
+            @click="cart.remove(item.product.id)"
+          />
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary__row">
+          <span class="muted">items</span>
+          <span>{{ cart.count }}</span>
+        </div>
+        <div class="summary__row">
+          <span class="muted">delivery</span>
+          <span>free</span>
+        </div>
+        <div class="summary__row summary__row--total">
+          <span>total</span>
+          <span>${{ cart.total.toFixed(2) }}</span>
         </div>
 
-        <div class="qty">
-          <q-btn round flat dense size="sm" icon="remove" />
-          <span class="qty__value">{{ item.quantity }}</span>
-          <q-btn round flat dense size="sm" icon="add" />
+        <div class="row justify-end q-gutter-sm q-mt-lg">
+          <q-btn flat no-caps color="primary" label="continue shopping" class="pill" to="/store" />
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            label="check out"
+            class="pill"
+            @click="checkout"
+          />
         </div>
-
-        <div class="item__total">${{ (item.product.price * item.quantity).toFixed(2) }}</div>
-
-        <q-btn flat no-caps dense color="primary" label="remove" />
       </div>
-    </div>
-
-    <div class="summary">
-      <div class="summary__row">
-        <span class="muted">subtotal</span>
-        <span>${{ total }}</span>
-      </div>
-      <div class="summary__row">
-        <span class="muted">delivery</span>
-        <span>free</span>
-      </div>
-      <div class="summary__row summary__row--total">
-        <span>total</span>
-        <span>${{ total }}</span>
-      </div>
-
-      <div class="row justify-end q-gutter-sm q-mt-lg">
-        <q-btn flat no-caps color="primary" label="continue shopping" class="pill" to="/store" />
-        <q-btn unelevated no-caps color="primary" label="check out" class="pill" />
-      </div>
-    </div>
+    </template>
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { products } from '@/data/products';
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+import { auth } from '@/services/auth';
+import { cart } from '@/services/cart';
 
-export default defineComponent({
-  name: 'CartPage',
-  data() {
-    return {
-      items: [
-        { product: products[0]!, quantity: 2 },
-        { product: products[1]!, quantity: 1 },
-        { product: products[14]!, quantity: 3 },
-      ],
-    };
-  },
-  computed: {
-    total(): string {
-      return this.items
-        .reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-        .toFixed(2);
-    },
-  },
-});
+const router = useRouter();
+
+async function checkout() {
+  if (!auth.isLoggedIn) {
+    await router.push({ name: 'login', query: { redirect: '/cart' } });
+    return;
+  }
+  const total = cart.total.toFixed(2);
+  cart.clear();
+  await router.push({ name: 'success', query: { total } });
+}
 </script>
 
 <style scoped lang="scss">
 .page {
   padding-top: 56px;
   padding-bottom: 96px;
+}
+
+.empty {
+  padding: 48px 0;
 }
 
 .items {

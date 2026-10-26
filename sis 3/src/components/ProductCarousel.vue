@@ -16,35 +16,23 @@
   </section>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue';
+<script setup lang="ts">
+import { useTemplateRef } from 'vue';
 import ProductCard from '@/components/ProductCard.vue';
 import type { Product } from '@/types/product';
 
-export default defineComponent({
-  name: 'ProductCarousel',
-  components: { ProductCard },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-    title: {
-      type: String,
-      required: true,
-    },
-    products: {
-      type: Array as PropType<Product[]>,
-      required: true,
-    },
-  },
-  methods: {
-    scroll(direction: number) {
-      const track = this.$refs.track as HTMLElement;
-      track.scrollBy({ left: direction * track.clientWidth * 0.8, behavior: 'smooth' });
-    },
-  },
-});
+defineProps<{
+  id: string;
+  title: string;
+  products: Product[];
+}>();
+
+const track = useTemplateRef<HTMLElement>('track');
+
+function scroll(direction: number) {
+  if (!track.value) return;
+  track.value.scrollBy({ left: direction * track.value.clientWidth * 0.8, behavior: 'smooth' });
+}
 </script>
 
 <style scoped lang="scss">

@@ -3,7 +3,15 @@
     <div class="container">
       <div class="store__head">
         <h1 class="headline q-ma-none">store.</h1>
-        <q-input v-model="search" dense borderless placeholder="search products" class="search">
+        <q-input
+          v-model="search"
+          dense
+          borderless
+          clearable
+          @clear="search = ''"
+          placeholder="search products"
+          class="search"
+        >
           <template #prepend>
             <q-icon name="search" size="18px" />
           </template>
@@ -12,48 +20,62 @@
 
       <nav class="chips">
         <button
-          v-for="category in categories"
-          :key="category.id"
+          v-for="section in sections"
+          :key="section.id"
           class="chip"
-          @click="scrollTo(category.id)"
+          @click="scrollTo(section.id)"
         >
-          {{ category.name }}
+          {{ section.name }}
         </button>
       </nav>
 
       <ProductCarousel
-        v-for="category in categories"
-        :id="category.id"
-        :key="category.id"
-        :title="category.name"
-        :products="products.filter((p) => category.titles.includes(p.title))"
+        v-for="section in sections"
+        :id="section.id"
+        :key="section.id"
+        :title="section.name"
+        :products="section.products"
       />
+
+      <div v-if="!sections.length" class="empty">
+        <p class="subhead q-ma-none">nothing found for “{{ search }}”.</p>
+        <q-btn
+          flat
+          no-caps
+          color="primary"
+          label="clear search"
+          class="q-mt-sm"
+          @click="search = ''"
+        />
+      </div>
     </div>
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
 import ProductCarousel from '@/components/ProductCarousel.vue';
 import { products } from '@/data/products';
 import { categories } from '@/data/categories';
 
-export default defineComponent({
-  name: 'StorePage',
-  components: { ProductCarousel },
-  data() {
-    return {
-      search: '',
-      products,
-      categories,
-    };
-  },
-  methods: {
-    scrollTo(id: string) {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    },
-  },
+const search = ref('');
+
+const sections = computed(() => {
+  const query = search.value.trim().toLowerCase();
+  return categories
+    .map((category) => ({
+      id: category.id,
+      name: category.name,
+      products: products.filter(
+        (p) => category.titles.includes(p.title) && p.title.toLowerCase().includes(query),
+      ),
+    }))
+    .filter((section) => section.products.length > 0);
 });
+
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 </script>
 
 <style scoped lang="scss">
@@ -100,5 +122,10 @@ export default defineComponent({
     background: #f5f5f7;
     border-color: #86868b;
   }
+}
+
+.empty {
+  padding: 64px 0;
+  text-align: center;
 }
 </style>

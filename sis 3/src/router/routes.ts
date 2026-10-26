@@ -13,7 +13,17 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/ProductPage.vue'),
       },
       { path: 'login', name: 'login', component: () => import('@/pages/LoginPage.vue') },
-      { path: 'cart', name: 'cart', component: () => import('@/pages/CartPage.vue') },
+      {
+        path: 'cart',
+        name: 'cart',
+        component: () => import('@/pages/CartPage.vue'),
+      },
+      {
+        path: 'success',
+        name: 'success',
+        component: () => import('@/pages/SuccessPage.vue'),
+        meta: { requiresAuth: true },
+      },
       { path: ':catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') },
     ],
   },
