@@ -43,4 +43,4 @@ export const categories: Category[] = [
 ];
 
 export const categoryOf = (title: string): string =>
-  categories.find((c) => c.titles.includes(title))?.name ?? 'other';
+  categories.find((c) => c.titles.includes(title))?.name ?? '';

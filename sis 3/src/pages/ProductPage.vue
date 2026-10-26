@@ -2,7 +2,32 @@
   <q-page class="container page">
     <router-link to="/store" class="back">‹ store</router-link>
 
-    <div v-if="!product" class="not-found">
+    <div v-if="loading" class="product">
+      <q-skeleton square class="product__image" />
+      <div class="product__info">
+        <q-skeleton type="text" width="80px" />
+        <q-skeleton type="text" width="70%" height="64px" />
+        <q-skeleton type="text" width="100px" />
+        <q-skeleton type="text" class="q-mt-lg" />
+        <q-skeleton type="text" width="80%" />
+      </div>
+    </div>
+
+    <div v-else-if="error" class="not-found">
+      <q-icon name="cloud_off" size="48px" color="accent" />
+      <p class="subhead q-mt-md q-mb-none">couldn’t load this product.</p>
+      <p class="muted q-mt-sm">{{ error }}</p>
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        label="try again"
+        class="pill q-mt-md"
+        @click="load"
+      />
+    </div>
+
+    <div v-else-if="!product" class="not-found">
       <p class="subhead q-ma-none">this product doesn’t exist.</p>
       <q-btn flat no-caps color="primary" label="back to store" class="q-mt-sm" to="/store" />
     </div>
@@ -48,17 +73,45 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { products } from '@/data/products';
+import { errorMessage, isNotFound } from '@/api/client';
 import { categoryOf } from '@/data/categories';
-import { cart } from '@/services/cart';
+import { useCartStore } from '@/stores/cart';
+import { useProductsStore } from '@/stores/products';
+import type { Product } from '@/types/product';
 
 const route = useRoute();
 const $q = useQuasar();
+const cart = useCartStore();
+const products = useProductsStore();
 
-const product = computed(() => products.find((p) => p.id === Number(route.params.id)));
+const product = ref<Product | null>(null);
+const loading = ref(false);
+const error = ref('');
+
+async function load() {
+  const id = Number(route.params.id);
+  product.value = null;
+  error.value = '';
+  loading.value = false;
+  if (!Number.isInteger(id) || id <= 0) return;
+
+  loading.value = true;
+  const isCurrent = () => id === Number(route.params.id);
+  try {
+    const data = await products.fetchOne(id);
+    if (isCurrent()) product.value = data.category === 'groceries' ? data : null;
+  } catch (e) {
+    if (isCurrent() && !isNotFound(e)) error.value = errorMessage(e);
+  } finally {
+    if (isCurrent()) loading.value = false;
+  }
+}
+
+watch(() => route.params.id, load, { immediate: true });
+
 const category = computed(() => (product.value ? categoryOf(product.value.title) : ''));
 const inBag = computed(() => (product.value ? (cart.find(product.value.id)?.quantity ?? 0) : 0));
 

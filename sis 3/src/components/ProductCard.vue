@@ -18,10 +18,11 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import type { Product } from '@/types/product';
-import { cart } from '@/services/cart';
+import { useCartStore } from '@/stores/cart';
 
 const props = defineProps<{ product: Product }>();
 const $q = useQuasar();
+const cart = useCartStore();
 
 function buy() {
   cart.add(props.product);

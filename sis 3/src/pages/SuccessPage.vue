@@ -5,7 +5,6 @@
         <q-icon name="check" size="40px" />
       </div>
       <h1 class="success__title">thank you, {{ auth.user?.firstName }}.</h1>
-      <p class="subhead q-mt-md q-mb-none">your order is on its way.</p>
       <p v-if="total" class="muted q-mt-sm">total paid: ${{ total }}</p>
 
       <q-btn
@@ -23,9 +22,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { auth } from '@/services/auth';
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
+const auth = useAuthStore();
 
 const total = computed(() => (typeof route.query.total === 'string' ? route.query.total : ''));
 </script>

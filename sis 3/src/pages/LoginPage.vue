@@ -27,6 +27,7 @@
           color="primary"
           label="continue"
           class="pill q-mt-lg"
+          :loading="loading"
           type="submit"
         />
       </q-form>
@@ -39,21 +40,32 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { auth } from '@/services/auth';
+import { errorMessage } from '@/api/client';
+import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cart';
 
 const route = useRoute();
 const router = useRouter();
+const auth = useAuthStore();
+const cart = useCartStore();
 
 const username = ref('');
 const password = ref('');
 const error = ref('');
+const loading = ref(false);
 
 async function submit() {
   error.value = '';
-  if (!auth.login(username.value.trim(), password.value)) {
-    error.value = 'wrong username or password.';
+  loading.value = true;
+  try {
+    await auth.login(username.value.trim(), password.value);
+  } catch (e) {
+    error.value = errorMessage(e);
     return;
+  } finally {
+    loading.value = false;
   }
+  void cart.load();
   const redirect = route.query.redirect;
   const safe =
     typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//');

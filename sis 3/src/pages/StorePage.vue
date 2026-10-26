@@ -18,57 +18,86 @@
         </q-input>
       </div>
 
-      <nav class="chips">
-        <button
-          v-for="section in sections"
-          :key="section.id"
-          class="chip"
-          @click="scrollTo(section.id)"
-        >
-          {{ section.name }}
-        </button>
-      </nav>
+      <div v-if="store.loading" class="skeleton">
+        <q-skeleton type="text" width="160px" height="40px" />
+        <div class="skeleton__row">
+          <div v-for="n in 4" :key="n" class="skeleton__card">
+            <q-skeleton square class="skeleton__image" />
+            <q-skeleton type="text" width="60%" class="q-mx-auto q-mt-md" />
+            <q-skeleton type="text" width="30%" class="q-mx-auto" />
+          </div>
+        </div>
+      </div>
 
-      <ProductCarousel
-        v-for="section in sections"
-        :id="section.id"
-        :key="section.id"
-        :title="section.name"
-        :products="section.products"
-      />
-
-      <div v-if="!sections.length" class="empty">
-        <p class="subhead q-ma-none">nothing found for “{{ search }}”.</p>
+      <div v-else-if="store.error" class="empty">
+        <q-icon name="cloud_off" size="48px" color="accent" />
+        <p class="subhead q-mt-md q-mb-none">couldn’t load products.</p>
+        <p class="muted q-mt-sm">{{ store.error }}</p>
         <q-btn
-          flat
+          unelevated
           no-caps
           color="primary"
-          label="clear search"
-          class="q-mt-sm"
-          @click="search = ''"
+          label="try again"
+          class="pill q-mt-md"
+          @click="store.fetchAll(true)"
         />
       </div>
+
+      <template v-else>
+        <nav class="chips">
+          <button
+            v-for="section in sections"
+            :key="section.id"
+            class="chip"
+            @click="scrollTo(section.id)"
+          >
+            {{ section.name }}
+          </button>
+        </nav>
+
+        <ProductCarousel
+          v-for="section in sections"
+          :id="section.id"
+          :key="section.id"
+          :title="section.name"
+          :products="section.products"
+        />
+
+        <div v-if="!sections.length" class="empty">
+          <p class="subhead q-ma-none">nothing found for “{{ search }}”.</p>
+          <q-btn
+            flat
+            no-caps
+            color="primary"
+            label="clear search"
+            class="q-mt-sm"
+            @click="search = ''"
+          />
+        </div>
+      </template>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import ProductCarousel from '@/components/ProductCarousel.vue';
-import { products } from '@/data/products';
-import { categories } from '@/data/categories';
+import { categories, categoryOf } from '@/data/categories';
+import { useProductsStore } from '@/stores/products';
 
+const store = useProductsStore();
 const search = ref('');
+
+onMounted(() => store.fetchAll());
 
 const sections = computed(() => {
   const query = search.value.trim().toLowerCase();
+  const found = store.items.filter((p) => p.title.toLowerCase().includes(query));
   return categories
     .map((category) => ({
       id: category.id,
       name: category.name,
-      products: products.filter(
-        (p) => category.titles.includes(p.title) && p.title.toLowerCase().includes(query),
-      ),
+      products: found.filter((p) => categoryOf(p.title) === category.name),
     }))
     .filter((section) => section.products.length > 0);
 });
@@ -127,5 +156,26 @@ function scrollTo(id: string) {
 .empty {
   padding: 64px 0;
   text-align: center;
+}
+
+.skeleton {
+  margin-top: 48px;
+}
+
+.skeleton__row {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.skeleton__card {
+  flex: 0 0 260px;
+}
+
+.skeleton__image {
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 18px;
 }
 </style>

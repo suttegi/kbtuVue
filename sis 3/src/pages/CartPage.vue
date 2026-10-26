@@ -37,10 +37,19 @@
               dense
               size="sm"
               icon="remove"
+              :disable="checkingOut"
               @click="cart.decrement(item.product.id)"
             />
             <span class="qty__value">{{ item.quantity }}</span>
-            <q-btn round flat dense size="sm" icon="add" @click="cart.increment(item.product.id)" />
+            <q-btn
+              round
+              flat
+              dense
+              size="sm"
+              icon="add"
+              :disable="checkingOut"
+              @click="cart.increment(item.product.id)"
+            />
           </div>
 
           <div class="item__total">${{ (item.product.price * item.quantity).toFixed(2) }}</div>
@@ -51,6 +60,7 @@
             dense
             color="primary"
             label="remove"
+            :disable="checkingOut"
             @click="cart.remove(item.product.id)"
           />
         </div>
@@ -78,6 +88,7 @@
             color="primary"
             label="check out"
             class="pill"
+            :loading="checkingOut"
             @click="checkout"
           />
         </div>
@@ -87,20 +98,35 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
+import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
-import { auth } from '@/services/auth';
-import { cart } from '@/services/cart';
+import { errorMessage } from '@/api/client';
+import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cart';
 
+const $q = useQuasar();
 const router = useRouter();
+const auth = useAuthStore();
+const cart = useCartStore();
+
+const checkingOut = ref(false);
 
 async function checkout() {
   if (!auth.isLoggedIn) {
     await router.push({ name: 'login', query: { redirect: '/cart' } });
     return;
   }
-  const total = cart.total.toFixed(2);
-  cart.clear();
-  await router.push({ name: 'success', query: { total } });
+  checkingOut.value = true;
+  try {
+    const total = cart.total.toFixed(2);
+    await cart.checkout();
+    await router.push({ name: 'success', query: { total } });
+  } catch (e) {
+    $q.notify({ message: `checkout failed: ${errorMessage(e)}`, color: 'negative' });
+  } finally {
+    checkingOut.value = false;
+  }
 }
 </script>
 

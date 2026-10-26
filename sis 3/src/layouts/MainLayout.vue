@@ -41,16 +41,35 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
-import { auth } from '@/services/auth';
-import { cart } from '@/services/cart';
+import { errorMessage, isUnauthorized } from '@/api/client';
+import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cart';
 
 const route = useRoute();
 const router = useRouter();
+const $q = useQuasar();
+const auth = useAuthStore();
+const cart = useCartStore();
+
+onMounted(async () => {
+  if (!auth.token) return;
+  try {
+    await auth.fetchMe();
+  } catch (e) {
+    if (!isUnauthorized(e)) {
+      $q.notify({ message: `couldn't reach the server: ${errorMessage(e)}`, color: 'negative' });
+    }
+    return;
+  }
+  await cart.load();
+});
 
 async function logout() {
   auth.logout();
-  cart.clear();
+  cart.reset();
   if (route.meta.requiresAuth) {
     await router.push('/login');
   }
