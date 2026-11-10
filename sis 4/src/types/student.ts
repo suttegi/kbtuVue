@@ -22,3 +22,11 @@ export interface Page<T> {
   items: T[];
   total: number;
 }
+
+export interface Stats {
+  students: number;
+  averageAge: number;
+  universities: number;
+  tasks: number;
+  completed: number;
+}

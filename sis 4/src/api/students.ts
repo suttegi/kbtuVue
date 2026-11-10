@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Page, Student, Task } from '@/types/student';
+import type { Page, Stats, Student, Task } from '@/types/student';
 
 const FIELDS = 'firstName,lastName,age,gender,email,phone,image,university,birthDate';
 
@@ -24,4 +24,22 @@ export async function getStudentTasks(id: number): Promise<Task[]> {
 export async function getTasks(): Promise<Task[]> {
   const { data } = await api.get<{ todos: Task[] }>('/todos', { params: { limit: 0 } });
   return data.todos;
+}
+
+export async function getStats(): Promise<Stats> {
+  const [users, todos] = await Promise.all([
+    api.get<{ users: Pick<Student, 'id' | 'age' | 'university'>[] }>('/users', {
+      params: { limit: 0, select: 'age,university' },
+    }),
+    getTasks(),
+  ]);
+  const list = users.data.users;
+  const ages = list.reduce((sum, s) => sum + s.age, 0);
+  return {
+    students: list.length,
+    averageAge: list.length ? Math.round(ages / list.length) : 0,
+    universities: new Set(list.map((s) => s.university)).size,
+    tasks: todos.length,
+    completed: todos.filter((t) => t.completed).length,
+  };
 }
