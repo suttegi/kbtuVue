@@ -1,61 +1,46 @@
 <template>
   <div class="row items-center q-gutter-sm">
     <q-input
-      :model-value="search"
+      v-model="search"
       placeholder="search by title"
       dense
       outlined
       clearable
       class="col-grow"
-      @update:model-value="$emit('update:search', $event ?? '')"
+      @clear="search = ''"
     />
 
     <q-btn-toggle
-      :model-value="status"
+      v-model="status"
       :options="statusOptions"
       toggle-color="primary"
       dense
       no-caps
       unelevated
-      @update:model-value="$emit('update:status', $event)"
     />
 
     <q-select
-      :model-value="priority"
+      v-model="priority"
       :options="priorityOptions"
       label="priority"
       dense
       outlined
       style="min-width: 120px"
-      @update:model-value="$emit('update:priority', $event)"
     />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import type { Priority } from '@/types/task';
+<script setup lang="ts">
+import type { StatusFilter, PriorityFilter } from '@/types/task';
 
-export type StatusFilter = 'all' | 'active' | 'completed';
-export type PriorityFilter = Priority | 'all';
+const search = defineModel<string>('search', { required: true });
+const status = defineModel<StatusFilter>('status', { required: true });
+const priority = defineModel<PriorityFilter>('priority', { required: true });
 
-export default defineComponent({
-  name: 'TaskFilters',
-  props: {
-    search: { type: String, required: true },
-    status: { type: String as PropType<StatusFilter>, required: true },
-    priority: { type: String as PropType<PriorityFilter>, required: true },
-  },
-  emits: ['update:search', 'update:status', 'update:priority'],
-  data() {
-    return {
-      statusOptions: [
-        { label: 'all', value: 'all' },
-        { label: 'active', value: 'active' },
-        { label: 'completed', value: 'completed' },
-      ],
-      priorityOptions: ['all', 'low', 'medium', 'high'],
-    };
-  },
-});
+const statusOptions = [
+  { label: 'all', value: 'all' },
+  { label: 'active', value: 'active' },
+  { label: 'completed', value: 'completed' },
+];
+const priorityOptions = ['all', 'low', 'medium', 'high'];
 </script>

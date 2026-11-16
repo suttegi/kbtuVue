@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>todo</q-toolbar-title>
-        <q-btn color="primary" icon="build" label="change" @click="onClick" />
+        <q-btn color="primary" icon="build" label="change" @click="toggle" />
       </q-toolbar>
     </q-header>
 
@@ -13,15 +13,8 @@
   </q-layout>
 </template>
 
-<script lang='ts'>
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { useDarkMode } from '@/composables/useDarkMode';
 
-export default defineComponent({
-  name: 'MainLayout',
-  methods: {
-    onClick() {
-      this.$q.dark.toggle();
-    },
-  },
-});
+const { toggle } = useDarkMode();
 </script>

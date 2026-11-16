@@ -15,12 +15,12 @@
           <BaseCard>
             <TaskFilters
               v-model:search="search"
-              v-model:status="statusFilter"
-              v-model:priority="priorityFilter"
+              v-model:status="status"
+              v-model:priority="priority"
             />
           </BaseCard>
           <TaskItem
-            v-for="task in filteredTasks"
+            v-for="task in filtered"
             :key="task.id"
             :task="task"
             @toggle="store.toggle"
@@ -28,8 +28,8 @@
             @update="store.update"
             @change-priority="store.setPriority"
           />
-          <div v-if="!filteredTasks.length" class="text-grey text-center q-pa-xl">
-            {{ store.total ? 'nothing matches the filters' : 'no tasks yet' }}
+          <div v-if="!filtered.length" class="text-grey text-center q-pa-xl">
+            {{ total ? 'nothing matches the filters' : 'no tasks yet' }}
           </div>
         </div>
       </div>
@@ -38,31 +38,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue';
+import { watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useTasksStore } from '@/stores/tasks';
+import { useTaskFilters } from '@/composables/useTaskFilters';
 import TaskItem from '@/components/TaskItem.vue';
 import TaskForm from '@/components/TaskForm.vue';
 import TaskStats from '@/components/TaskStats.vue';
-import TaskFilters, { type StatusFilter, type PriorityFilter } from '@/components/TaskFilters.vue';
+import TaskFilters from '@/components/TaskFilters.vue';
 
 const store = useTasksStore();
-
-const search = ref('');
-const statusFilter = ref<StatusFilter>('all');
-const priorityFilter = ref<PriorityFilter>('all');
-
-const filteredTasks = computed(() => {
-  const query = search.value.trim().toLowerCase();
-  return store.tasks.filter((task) => {
-    if (statusFilter.value === 'active' && task.completed) return false;
-    if (statusFilter.value === 'completed' && !task.completed) return false;
-    if (priorityFilter.value !== 'all' && task.priority !== priorityFilter.value) return false;
-    return task.title.toLowerCase().includes(query);
-  });
-});
+const { tasks, total } = storeToRefs(store);
+const { search, status, priority, filtered } = useTaskFilters(tasks);
 
 watchEffect(() => {
-  document.title = `tasks (${store.total})`;
+  document.title = `tasks (${total.value})`;
 });
 </script>
 

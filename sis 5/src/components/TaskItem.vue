@@ -65,47 +65,25 @@
     </BaseCard>
 </template>
 
-<script lang='ts'>
-import { defineComponent, type PropType } from 'vue';
-import type { Task, Priority } from '@/types/task'
-export default defineComponent({
-    name:'TaskItem',
-    data() {
-        return{
-            editing: false,
-            draftTitle: '',
-            draftDescription: '',
-            priorities: ['low', 'medium', 'high'] as Priority[],
-        }
-    },
-    props: {
-        task: {type: Object as PropType<Task>, required: true}
-    },
-    emits: ['toggle', 'delete', 'update', 'change-priority'],
-    methods:{
-        priorityColor(priority: Priority): string {
-        if (priority === 'high') return 'red';
-        if (priority === 'medium') return 'orange';
-        return 'green';
-        },
-        startEdit() {
-            this.draftTitle = this.task.title;
-            this.draftDescription = this.task.description;
-            this.editing = true;
-        },
-        saveEdit() {
-            if (!this.draftTitle) return;
-            this.$emit('update', this.task.id, {
-                title: this.draftTitle,
-                description: this.draftDescription,
-            });
-            this.editing = false;
-        },
-        cancelEdit() {
-            this.editing = false;
-        },
-    },
-})
+<script setup lang="ts">
+import type { Task, Priority } from '@/types/task';
+import { useTaskEdit } from '@/composables/useTaskEdit';
+import { usePriority } from '@/composables/usePriority';
+
+const props = defineProps<{ task: Task }>();
+
+const emit = defineEmits<{
+  toggle: [id: number];
+  delete: [id: number];
+  update: [id: number, changes: Pick<Task, 'title' | 'description'>];
+  'change-priority': [id: number, priority: Priority];
+}>();
+
+const { priorities, priorityColor } = usePriority();
+const { editing, draftTitle, draftDescription, startEdit, saveEdit, cancelEdit } = useTaskEdit(
+  () => props.task,
+  (changes) => emit('update', props.task.id, changes),
+);
 </script>
 
 <style scoped>

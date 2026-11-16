@@ -9,3 +9,7 @@ export interface Task {
 }
 
 export type Priority = 'low' | 'medium' | 'high'
+
+export type StatusFilter = 'all' | 'active' | 'completed'
+
+export type PriorityFilter = Priority | 'all'
