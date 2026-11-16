@@ -2,7 +2,7 @@
   <a-layout class="layout">
     <a-layout-header class="header">
       <span class="logo">todo</span>
-      <a-button @click="toggle">change</a-button>
+      <a-button @click="toggle">{{ isDark ? 'light' : 'dark' }}</a-button>
     </a-layout-header>
 
     <a-layout-content class="content">
@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import { useDarkMode } from '@/composables/useDarkMode';
 
-const { toggle } = useDarkMode();
+const { isDark, toggle } = useDarkMode();
 </script>
 
 <style scoped>

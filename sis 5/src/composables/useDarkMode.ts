@@ -1,9 +1,18 @@
-import { useQuasar } from 'quasar';
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { theme } from 'ant-design-vue';
+import { useSettingsStore } from '@/stores/settings';
 
 export function useDarkMode() {
-  const $q = useQuasar();
+  const { isDark } = storeToRefs(useSettingsStore());
 
-  const toggle = () => $q.dark.toggle();
+  const toggle = () => {
+    isDark.value = !isDark.value;
+  };
 
-  return { toggle };
+  const themeConfig = computed(() => ({
+    algorithm: isDark.value ? theme.darkAlgorithm : theme.defaultAlgorithm,
+  }));
+
+  return { isDark, toggle, themeConfig };
 }

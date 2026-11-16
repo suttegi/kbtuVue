@@ -10,7 +10,7 @@
       <a-select v-model:value="form.priority" :options="priorityOptions" />
     </a-form-item>
     <a-form-item label="deadline">
-      <a-date-picker v-model:value="form.deadline" value-format="YYYY-MM-DD" class="full" />
+      <a-date-picker v-model:value="form.deadline" value-format="YYYY-MM-DD" :allow-clear="false" class="full" />
     </a-form-item>
     <a-button type="primary" html-type="submit" block :disabled="!form.title.trim()">add</a-button>
   </a-form>

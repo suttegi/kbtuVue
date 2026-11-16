@@ -26,5 +26,5 @@ export function useTaskForm(onSubmit: (payload: TaskPayload) => void) {
     reset();
   }
 
-  return { form, submit, reset };
+  return { form, submit };
 }
