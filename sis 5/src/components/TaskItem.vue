@@ -1,68 +1,52 @@
 <template>
-    <BaseCard :class="{ done: task.completed }">
-      <template #header>
-        <div v-if="editing" class="q-gutter-sm">
-          <q-input v-model="draftTitle" label="title" dense outlined autofocus @keyup.enter="saveEdit" />
-          <q-input v-model="draftDescription" label="description" type="textarea" autogrow dense outlined />
+  <BaseCard :class="{ done: task.completed }">
+    <div v-if="editing" class="edit">
+      <a-input v-model:value="draftTitle" placeholder="title" @press-enter="saveEdit" />
+      <a-textarea v-model:value="draftDescription" placeholder="description" :auto-size="{ minRows: 2 }" />
+    </div>
+    <div v-else class="head">
+      <a-checkbox :checked="task.completed" @change="emit('toggle', task.id)" />
+      <div class="body">
+        <a-typography-text strong class="title">{{ task.title }}</a-typography-text>
+        <div v-if="task.description">
+          <a-typography-text type="secondary">{{ task.description }}</a-typography-text>
         </div>
-        <div v-else class="row no-wrap items-start q-gutter-sm">
-          <q-checkbox
-            :model-value="task.completed"
-            dense
-            color="positive"
-            @update:model-value="$emit('toggle', task.id)"
-          />
-          <div class="col">
-            <div class="text-subtitle1 text-weight-medium title">{{ task.title }}</div>
-            <div v-if="task.description" class="text-body2 text-grey-8">{{ task.description }}</div>
-          </div>
-          <q-badge :color="priorityColor(task.priority)" class="cursor-pointer q-px-sm q-py-xs">
-            {{ task.priority }}
-            <q-menu>
-              <q-list dense>
-                <q-item
-                  v-for="p in priorities"
-                  :key="p"
-                  clickable
-                  v-close-popup
-                  :active="p === task.priority"
-                  @click="$emit('change-priority', task.id, p)"
-                >
-                  <q-item-section>{{ p }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-badge>
-        </div>
-      </template>
-
-      <div class="row items-center q-gutter-md text-caption text-grey-7">
-        <span>
-          <q-icon :name="task.completed ? 'done' : 'close'" />
-          {{ task.completed ? 'completed' : 'active' }}
-        </span>
-        <span>created: {{ new Date(task.createdAt).toLocaleString() }}</span>
-        <span v-if="task.deadline">deadline: {{ task.deadline }}</span>
       </div>
+      <a-dropdown :trigger="['click']">
+        <a-tag :color="priorityColor(task.priority)" class="priority">{{ task.priority }}</a-tag>
+        <template #overlay>
+          <a-menu
+            :selected-keys="[task.priority]"
+            @click="({ key }: { key: Priority }) => emit('change-priority', task.id, key)"
+          >
+            <a-menu-item v-for="p in priorities" :key="p">{{ p }}</a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+    </div>
 
-      <template #actions>
-        <template v-if="editing">
-          <q-btn flat no-caps label="cancel" @click="cancelEdit" />
-          <q-btn flat no-caps color="primary" label="save" :disable="!draftTitle" @click="saveEdit" />
-        </template>
-        <template v-else>
-          <q-btn
-            flat
-            no-caps
-            color="positive"
-            :label="task.completed ? 'undo' : 'complete'"
-            @click="$emit('toggle', task.id)"
-          />
-          <q-btn flat no-caps label="edit" @click="startEdit" />
-          <q-btn flat no-caps color="negative" label="delete" @click="$emit('delete', task.id)" />
-        </template>
+    <a-space class="meta" wrap>
+      <a-typography-text type="secondary">{{ task.completed ? 'completed' : 'active' }}</a-typography-text>
+      <a-typography-text type="secondary">created: {{ new Date(task.createdAt).toLocaleString() }}</a-typography-text>
+      <a-typography-text v-if="task.deadline" type="secondary">deadline: {{ task.deadline }}</a-typography-text>
+    </a-space>
+
+    <template #actions>
+      <template v-if="editing">
+        <a-button type="link" @click="cancelEdit">cancel</a-button>
+        <a-button type="link" :disabled="!draftTitle.trim()" @click="saveEdit">save</a-button>
       </template>
-    </BaseCard>
+      <template v-else>
+        <a-button type="link" @click="emit('toggle', task.id)">
+          {{ task.completed ? 'undo' : 'complete' }}
+        </a-button>
+        <a-button type="link" @click="startEdit">edit</a-button>
+        <a-popconfirm title="delete this task?" @confirm="emit('delete', task.id)">
+          <a-button type="link" danger>delete</a-button>
+        </a-popconfirm>
+      </template>
+    </template>
+  </BaseCard>
 </template>
 
 <script setup lang="ts">
@@ -87,6 +71,31 @@ const { editing, draftTitle, draftDescription, startEdit, saveEdit, cancelEdit }
 </script>
 
 <style scoped>
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.body {
+  flex: 1;
+}
+
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.priority {
+  cursor: pointer;
+}
+
+.meta {
+  margin-top: 12px;
+  font-size: 12px;
+}
+
 .done .title {
   text-decoration: line-through;
   opacity: 0.6;

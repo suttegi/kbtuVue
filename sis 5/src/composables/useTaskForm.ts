@@ -4,7 +4,7 @@ import type { Task } from '@/types/task';
 
 export type TaskPayload = Pick<Task, 'title' | 'description' | 'priority' | 'deadline'>;
 
-const today = () => date.formatDate(Date.now(), 'YYYY/MM/DD');
+const today = () => date.formatDate(Date.now(), 'YYYY-MM-DD');
 
 const empty = (): TaskPayload => ({
   title: '',

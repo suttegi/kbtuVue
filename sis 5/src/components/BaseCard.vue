@@ -1,24 +1,15 @@
 <template>
-  <q-card flat bordered>
-    <q-card-section v-if="title || $slots.header">
-      <slot name="header">
-        <div class="text-subtitle1 text-weight-medium">{{ title }}</div>
-      </slot>
-    </q-card-section>
-
-    <q-card-section>
-      <slot />
-    </q-card-section>
-  </q-card>
+  <a-card :title="title || undefined">
+    <template v-if="$slots.header" #title>
+      <slot name="header" />
+    </template>
+    <slot />
+    <template v-if="$slots.actions" #actions>
+      <slot name="actions" />
+    </template>
+  </a-card>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'BaseCard',
-  props: {
-    title: { type: String, default: '' },
-  },
-});
+<script setup lang="ts">
+defineProps<{ title?: string }>();
 </script>

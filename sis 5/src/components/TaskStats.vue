@@ -1,20 +1,17 @@
 <template>
   <BaseCard title="stats">
-    <div class="row text-center q-mb-md">
-      <div class="col">
-        <div class="text-h5">{{ total }}</div>
-        <div class="text-caption text-grey">total</div>
-      </div>
-      <div class="col">
-        <div class="text-h5 text-primary">{{ active }}</div>
-        <div class="text-caption text-grey">active</div>
-      </div>
-      <div class="col">
-        <div class="text-h5 text-positive">{{ completed }}</div>
-        <div class="text-caption text-grey">completed</div>
-      </div>
-    </div>
-    <q-linear-progress :value="progress" color="positive" size="6px" rounded />
+    <a-row class="stats">
+      <a-col :span="8">
+        <a-statistic title="total" :value="total" />
+      </a-col>
+      <a-col :span="8">
+        <a-statistic title="active" :value="active" />
+      </a-col>
+      <a-col :span="8">
+        <a-statistic title="completed" :value="completed" />
+      </a-col>
+    </a-row>
+    <a-progress :percent="Math.round(progress * 100)" />
   </BaseCard>
 </template>
 
@@ -23,3 +20,10 @@ import { useTaskStats } from '@/composables/useTaskStats';
 
 const { total, active, completed, progress } = useTaskStats();
 </script>
+
+<style scoped>
+.stats {
+  text-align: center;
+  margin-bottom: 12px;
+}
+</style>
